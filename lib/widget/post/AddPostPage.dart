@@ -3,6 +3,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:trade_item/common/APIService.dart';
+
 class AddPostPage extends StatefulWidget {
   @override
   _AddPostPageState createState() => _AddPostPageState();
@@ -52,16 +54,26 @@ class _AddPostPageState extends State<AddPostPage> {
             icon: Icon(Icons.save),
             onPressed: () async{
               final newPost = {
-                'postId': DateTime.now().millisecondsSinceEpoch,
                 'title': _titleController.text,
                 'description': _descriptionController.text,
-                'category': _categoryController.text,
-                'name': _nameController.text,
-                'price': _priceController.text,
-                'imageUrl': _imageUrls.firstWhere((url) => url.isNotEmpty, orElse: () => ''),
-                'imageUrls': _imageUrls.where((url) => url.isNotEmpty).toList(),
               };
-
+              APIService api = APIService();
+              var news = await api.createNews({
+                'title': _titleController.text,
+                'description': _descriptionController.text,
+              });
+              var cate = await api.createCate({'nameCategory':_categoryController.text});
+              var product = await api.createProduct({
+                'categoryID': '',
+                'nameProduct': _nameController.text,
+                'pricesProduct':_priceController.text,
+                'status':'Còn hàng',
+                'imgProduct': (),
+                'imgSlide1':,
+                'imgSlide2':,
+                'imgSlide3':,
+              });
+              api.createProduct()
               Navigator.pop(context, newPost);
             },
           ),

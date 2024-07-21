@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:trade_item/common/APIService.dart';
 
 class PostWidget extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -33,14 +37,13 @@ class _PostWidgetState extends State<PostWidget> {
             ),
             TextButton(
               child: Text('Đăng'),
-              onPressed: () {
+              onPressed: () async{
                 if (commentController.text.isNotEmpty) {
-                  setState(() {
-                    widget.post['comments'].add({
-                      'userId': 'current_user_id', // replace with actual user id
-                      'comment': commentController.text,
-                    });
-                  });
+                  APIService api = APIService();
+                  var box = await Hive.openBox('user');
+                  var id = await box.get('info')['id'];
+
+                  api.createComment({'newsID':widget.post['News']['id'],'userID':id,'contentComment':commentController.text});
                   Navigator.of(context).pop();
                 }
               },
@@ -76,7 +79,7 @@ class _PostWidgetState extends State<PostWidget> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          widget.post['username'],
+                          widget.post['User']['nameUser'],
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(width: 5,),
@@ -86,7 +89,7 @@ class _PostWidgetState extends State<PostWidget> {
                                 (index) => Icon(
                               Icons.star,
                               size: 10,
-                              color: index < widget.post['userRating'] ? Colors.orange : Colors.grey,
+                              color: index < 5 ? Colors.orange : Colors.grey,
                             ),
                           ),
                         ),
@@ -105,17 +108,17 @@ class _PostWidgetState extends State<PostWidget> {
                             });
                           },
                         ),
-                        Text('Kho: ${widget.post['productQuantity']}'),
+                        Text('Kho: '+(widget.post['Product']['status'])??'Hết hàng'),
                       ],
                     ),
                   ],
                 ),
                 SizedBox(height: 10),
-                Image.network(widget.post['imageUrl'], fit: BoxFit.cover,height:200, width: 250),
+                Image.network(widget.post['Product']['imgProduct'], fit: BoxFit.cover,height:200, width: 250),
                 SizedBox(height: 10),
                 Expanded(
                   child: Text(
-                    widget.post['content'],
+                    widget.post['News']['title']+"\n"+widget.post['News']['description'],
                     overflow: TextOverflow.ellipsis,
                     maxLines: 5, // Ensure the text doesn't overflow the square card
                   ),
@@ -129,7 +132,7 @@ class _PostWidgetState extends State<PostWidget> {
                         5,
                             (index) => Icon(
                           Icons.star,
-                          color: index < widget.post['postRating'] ? Colors.orange : Colors.grey,
+                          color: index < 5 ? Colors.orange : Colors.grey,
                         ),
                       ),
                     ),
@@ -139,7 +142,7 @@ class _PostWidgetState extends State<PostWidget> {
                         children: [
                           Icon(Icons.comment),
                           SizedBox(width: 5),
-                          Text('${widget.post['comments'].length} bình luận.'),
+                          Text('Bình luận.'),
                         ],
                       ),
                     ),

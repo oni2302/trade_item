@@ -75,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => HomeScreen(),
+                              builder: (context) => BottomNavigation(key: GlobalKey(),),
                             ), // Change this to your desired screen after login
                                 (Route<dynamic> route) => false);
                         }else{
@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => BottomNavigation(key: GlobalKey(),)),
+                              builder: (context) => RegisterScreen()),
                         );
                       },
                       child: const Text("Đăng kí ngay!"),

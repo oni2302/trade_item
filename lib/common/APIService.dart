@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 
 class APIService {
   // Base URL
-  final String _baseUrl = "http://10.0.2.2:9000/api";
-  final Dio _dio = Dio(BaseOptions(baseUrl: "http://10.0.2.2:9000/api"));
+  final String _baseUrl = "http://192.168.1.200:9000";
+  final Dio _dio = Dio(BaseOptions(baseUrl: "http://192.168.1.200:9000/api"));
 
 
 
@@ -57,7 +57,22 @@ class APIService {
   Future<Response> deleteRate(int id) async {
     return await _dio.delete('/rate/deleteRate/$id');
   }
+  // Category APIs
+  Future<Response> createCate(Map<String, dynamic> data) async {
+    return await _dio.post('/cate/createCate', data: data);
+  }
 
+  Future<Response> getAllCate() async {
+    return await _dio.get('/cate/cateAPI');
+  }
+
+  Future<Response> updateCate(int id, Map<String, dynamic> data) async {
+    return await _dio.put('/cate/updateCate/$id', data: data);
+  }
+
+  Future<Response> deleteCate(int id) async {
+    return await _dio.delete('/cate/deleteCate/$id');
+  }
   // Add more methods for other routes similarly...
 
   // Product APIs
