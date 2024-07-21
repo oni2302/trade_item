@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trade_item/common/APIService.dart';
 import '../post/AddPostPage.dart';
 import 'PostDetailScreen.dart';
 
@@ -8,45 +9,34 @@ class ManageScreen extends StatefulWidget {
 }
 
 class _ManageScreenState extends State<ManageScreen> {
-  final List<String> categories = [
-    'All',
-    'Electronics',
-    'Fashion',
-    'Home & Garden',
-    'Sports',
-    'Toys',
-    'Automotive',
-    'Books',
-    'Health',
-    'Beauty',
+  List<Map<String,dynamic>> categories = [
   ];
 
-  final List<Map<String, dynamic>> posts = [
-    {
-      'postId': 1,
-      'title': 'Smartphone XYZ',
-      'description': 'Latest model with high performance.',
-      'category': 'Electronics',
-      'imageUrl': 'https://via.placeholder.com/50',
-      'price': '499.99',
-      'imageUrls': ['https://via.placeholder.com/50'],
-      'comments': [],
-    },
-    // Add other posts here
+  List<Map<String, dynamic>> posts = [
   ];
 
+  Future<void> _loadCategoryAndPost() async{
+    APIService api = APIService();
+    var cate = List<Map<String, dynamic>>.from( (await api.getAllCate()).data['result']);
+    var p = List<Map<String, dynamic>>.from( (await api.getAllProductNews()).data['result']);
+    setState(() {
+      categories= cate;
+      posts = p;
+    });
+  }
+  @override
+  void initState() {
+    _loadCategoryAndPost();
+    super.initState();
+  }
   String selectedCategory = 'All';
-
-  void _showAddPostPage() {
+  int selectCateID = -1;
+  void _showAddPostPage(){
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddPostPage()),
-    ).then((newPost) {
-      if (newPost != null) {
-        setState(() {
-          posts.add(newPost);
-        });
-      }
+    ).then((newPost) async{
+      await _loadCategoryAndPost();
     });
   }
 
@@ -54,20 +44,14 @@ class _ManageScreenState extends State<ManageScreen> {
   Widget build(BuildContext context) {
     final filteredPosts = selectedCategory == 'All'
         ? posts
-        : posts.where((post) => post['category'] == selectedCategory).toList();
+        : posts.where((post) => post['Product']['categoryID'] == selectCateID).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Screen'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_box),
-            onPressed: () {
-              // Add Category functionality
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.add),
+            icon: Row(children: [Icon(Icons.add),SizedBox(width: 5,),Text('Tạo bài viết')]),
             onPressed: _showAddPostPage,
           ),
         ],
@@ -75,7 +59,7 @@ class _ManageScreenState extends State<ManageScreen> {
       body: Column(
         children: [
           Container(
-            height: 80,
+            height: 45,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: categories.length,
@@ -83,23 +67,24 @@ class _ManageScreenState extends State<ManageScreen> {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      selectedCategory = categories[index];
+                      selectedCategory = categories[index]['nameCategory'];
+                      selectCateID = categories[index]['id'];
                     });
                   },
                   child: Container(
-                    margin: EdgeInsets.all(8),
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    margin: EdgeInsets.all(5),
+                    padding: EdgeInsets.symmetric(horizontal: 16,vertical: 0),
                     decoration: BoxDecoration(
-                      color: selectedCategory == categories[index]
+                      color: selectedCategory == categories[index]['nameCategory']
                           ? Colors.blue
                           : Colors.grey,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(100000),
                     ),
                     child: Center(
                       child: Text(
-                        categories[index],
+                        categories[index]['nameCategory'],
                         style: TextStyle(
-                          color: selectedCategory == categories[index]
+                          color: selectedCategory == categories[index]['nameCategory']
                               ? Colors.white
                               : Colors.black,
                         ),
@@ -118,9 +103,9 @@ class _ManageScreenState extends State<ManageScreen> {
                 return Card(
                   margin: EdgeInsets.all(8),
                   child: ListTile(
-                    leading: Image.network(post['imageUrl']),
-                    title: Text(post['title']),
-                    subtitle: Text(post['description']),
+                    leading: Image.network(post['Product']['imgProduct']),
+                    title: Text(post['News']['title']),
+                    subtitle: Text(post['News']['description']),
                     onTap: () {
                       Navigator.push(
                         context,

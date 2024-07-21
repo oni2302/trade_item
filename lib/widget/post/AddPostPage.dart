@@ -1,5 +1,9 @@
+import 'dart:collection';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -17,7 +21,7 @@ class _AddPostPageState extends State<AddPostPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final List<String> _imageUrls = ['', '', '', ''];
-  final List<File> _imageFiles = [File(''), File(''), File(''), File('')];
+  final List<File?> _imageFiles = [null, null, null, null];
 
   Future<void> _pickImage(int index) async {
     final picker = ImagePicker();
@@ -34,7 +38,8 @@ class _AddPostPageState extends State<AddPostPage> {
 
   Future<void> _uploadImage(File imageFile, int index) async {
     final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    final firebaseStorageRef = FirebaseStorage.instance.ref().child('images/$fileName');
+    final firebaseStorageRef =
+        FirebaseStorage.instance.ref().child('images/$fileName');
     final uploadTask = firebaseStorageRef.putFile(imageFile);
     final taskSnapshot = await uploadTask.whenComplete(() => null);
     final downloadUrl = await taskSnapshot.ref.getDownloadURL();
@@ -52,29 +57,51 @@ class _AddPostPageState extends State<AddPostPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.save),
-            onPressed: () async{
-              final newPost = {
-                'title': _titleController.text,
-                'description': _descriptionController.text,
-              };
+            onPressed: () async {
+              Map<String, dynamic> result = HashMap();
               APIService api = APIService();
-              var news = await api.createNews({
+              var newID = Random().nextInt(2147483647);
+
+              var cateID = Random().nextInt(2147483647);
+              var productID = Random().nextInt(2147483647);
+              await api.createNews({
+                'id': newID,
                 'title': _titleController.text,
                 'description': _descriptionController.text,
               });
-              var cate = await api.createCate({'nameCategory':_categoryController.text});
-              var product = await api.createProduct({
-                'categoryID': '',
+
+              await api.createCate(
+                  {'id': cateID, 'nameCategory': _categoryController.text});
+
+              Box box = await Hive.openBox('user');
+              var userID = box.get('info')['id'];
+              await api.createProduct({
+                'id': productID,
+                'categoryID': cateID,
                 'nameProduct': _nameController.text,
-                'pricesProduct':_priceController.text,
-                'status':'Còn hàng',
-                'imgProduct': (),
-                'imgSlide1':,
-                'imgSlide2':,
-                'imgSlide3':,
+                'pricesProduct': _priceController.text,
+                'status': 'Còn hàng',
+                'imgProduct': (_imageUrls[0].isNotEmpty)
+                    ? _imageUrls[0]
+                    : 'https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg',
+                'imgSlide1': (_imageUrls[1].isNotEmpty)
+                    ? _imageUrls[1]
+                    : 'https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg',
+                'imgSlide2': (_imageUrls[2].isNotEmpty)
+                    ? _imageUrls[2]
+                    : 'https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg',
+                'imgSlide3': (_imageUrls[3].isNotEmpty)
+                    ? _imageUrls[3]
+                    : 'https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg',
               });
-              api.createProduct()
-              Navigator.pop(context, newPost);
+              var pnID = Random().nextInt(2147483647);
+              api.createProductNews({
+                'id': pnID,
+                'newsID': newID,
+                'productID': productID,
+                'userID': userID
+              });
+              Navigator.pop(context);
             },
           ),
         ],
@@ -119,10 +146,13 @@ class _AddPostPageState extends State<AddPostPage> {
                       width: 50,
                       height: 50,
                       margin: EdgeInsets.symmetric(horizontal: 5),
-                      child: Image.file(
-                        _imageFiles[index],
-                        fit: BoxFit.cover,
-                      ),
+                      child: (_imageFiles[index] != null)
+                          ? Image.file(
+                              _imageFiles[index]!,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset('assets/images/no_image.jpg',
+                              fit: BoxFit.cover),
                     ),
                   ],
                 );

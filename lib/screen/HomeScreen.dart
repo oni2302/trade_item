@@ -22,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     List<Map<String, dynamic>> result =
         List<Map<String, dynamic>>.from(res.data['result']);
-    print(result[0]['News']);
     return search(result, searchQuery);
   }
 
@@ -171,7 +170,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(child: Text('No data available'));
+                      return Center(
+                          child: Text('Tạm thời chưa có bài đăng nào'));
                     } else {
                       return ListView.builder(
                         itemCount: snapshot.data!.length,
