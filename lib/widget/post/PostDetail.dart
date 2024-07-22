@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
@@ -28,7 +29,7 @@ class _PostDetailState extends State<PostDetail> {
     List<Map<String, dynamic>> result =
         List<Map<String, dynamic>>.from(res.data['result']);
     comments = result;
-    print(comments[1]);
+    if (comments == null) print(comments[1]);
     return result;
   }
 
@@ -41,14 +42,16 @@ class _PostDetailState extends State<PostDetail> {
           data['News']['title'].toLowerCase().contains(search.toLowerCase());
     }).toList();
   }
+
   Future<void> _initializeUser() async {
     Box box = await Hive.openBox('user');
     setState(() {
       userID = box.get('info')['id'];
     });
   }
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _initializeUser();
   }
@@ -82,20 +85,20 @@ class _PostDetailState extends State<PostDetail> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit Comment'),
+          title: Text('Sửa bình luận'),
           content: TextField(
             controller: editController,
-            decoration: InputDecoration(hintText: 'Edit your comment here'),
+            decoration: InputDecoration(hintText: 'Sửa bình luận ở đây'),
           ),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: Text('Hủy'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Save'),
+              child: Text('Cập nhật'),
               onPressed: () async {
                 if (editController.text.isNotEmpty) {
                   APIService api = APIService();
@@ -122,133 +125,165 @@ class _PostDetailState extends State<PostDetail> {
     });
   }
 
+  Future<void> _buy(id) async {
+    APIService api = APIService();
+    var res = await api.createOrder({'userID':userID,'productID':id});
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mua thành công!')));
+    Navigator.pop(context);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Post Detail'),
-        actions: (userID == widget.post['User']['id'])?[
-          PopupMenuButton<String>(
-            onSelected: (String result) {
-              if (result == 'Edit') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditPostPage(
-                      post: widget.post,
+        title: Text('Chi tiết bài đăng'),
+        actions: (userID == widget.post['User']['id'])
+            ? [
+                PopupMenuButton<String>(
+                  onSelected: (String result) {
+                    if (result == 'Edit') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditPostPage(
+                            post: widget.post, 
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'Edit',
+                      child: Text('Edit'),
                     ),
-                  ),
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'Edit',
-                child: Text('Edit'),
-              ),
-            ],
-          ),
-        ]:null,
+                  ],
+                ),
+              ]
+            : null,
       ),
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.post['User']['nameUser'],
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-            Row(
-              children: List.generate(
-                5,
-                (index) => Icon(
-                  Icons.star,
-                  color: index < 5 ? Colors.orange : Colors.grey,
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            Image.network(widget.post['Product']['imgProduct'],
-                fit: BoxFit.cover),
-            SizedBox(height: 10),
-            Text(widget.post['News']['title'] +
-                "\n" +
-                widget.post['News']['description']),
-            SizedBox(height: 10),
-            Text('Tình trạng: ${widget.post['Product']['status']}'),
-            SizedBox(height: 10),
-            Text('Comments'),
-            Flexible(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: getComments(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No comments available'));
-                  } else {
-
-                    return ListView.builder(
-                      itemCount: comments.length,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          child: ListTile(
-                            title: Text(comments[index]['contentComment']),
-                            subtitle: Text(
-                                'User: ${comments[index]['User']['nameUser'] ?? "unknown"}'),
-                            trailing:(userID==comments[index]['User']['id'])? TextButton(
-                              child: Icon(Icons.more_vert),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) {
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ListTile(
-                                          leading: Icon(Icons.edit),
-                                          title: Text('Edit'),
-                                          onTap: () {
-                                            Navigator.pop(context);
-                                            _showEditCommentDialog(index);
-                                          },
-                                        ),
-                                        ListTile(
-                                          leading: Icon(Icons.delete),
-                                          title: Text('Delete'),
-                                          onTap: () {
-                                            Navigator.pop(context);
-                                            _deleteComment(index);
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ):null,
+        child: Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SingleChildScrollView(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          widget.post['User']['nameUser'],
+                          style:
+                              TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                        SizedBox(width: 5,),
+                        Row(
+                          children: List.generate(
+                            5,
+                            (index) => Icon(
+                              size: 15,
+                              Icons.star,
+                              color: index < 5 ? Colors.orange : Colors.grey,
+                            ),
                           ),
-                        );
-                      },
-                    );
-                  }
-                },
-              ),
-            ),
-            TextField(
-              controller: commentController,
-              decoration: InputDecoration(
-                labelText: 'Write a comment',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _addComment,
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: ()async{await _buy(widget.post['Product']['id']);},
+                      child: Text('Mua',style: TextStyle(color: Colors.white),),
+                      style: ButtonStyle(backgroundColor: MaterialStateColor.resolveWith((states) => Colors.deepOrangeAccent))
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: 4),
+              Image.network(widget.post['Product']['imgProduct'],
+                  fit: BoxFit.cover),
+              SizedBox(height: 4),
+              Text(widget.post['News']['title'] +
+                  "\n" +
+                  widget.post['News']['description']),
+              SizedBox(height: 4),
+              Text('Tình trạng: ${widget.post['Product']['status']}'),
+              SizedBox(height: 4),
+              Text('Bình luận'),
+              Flexible(
+                fit: FlexFit.tight,
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: getComments(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(child: Text('No comments available'));
+                    } else {
+                      return ListView.builder(
+                        itemCount: comments.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            child: ListTile(
+                              title: Text(comments[index]['contentComment']),
+                              subtitle: Text(
+                                  'User: ${comments[index]['User']['nameUser'] ?? "unknown"}'),
+                              trailing: (userID == comments[index]['User']['id'])
+                                  ? TextButton(
+                                      child: Icon(Icons.more_vert),
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          builder: (context) {
+                                            return Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                ListTile(
+                                                  leading: Icon(Icons.edit),
+                                                  title: Text('Sửa'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    _showEditCommentDialog(index);
+                                                  },
+                                                ),
+                                                ListTile(
+                                                  leading: Icon(Icons.delete),
+                                                  title: Text('Xóa'),
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                    _deleteComment(index);
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                    )
+                                  : null,
+                            ),
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ),
+              TextField(
+                controller: commentController,
+                decoration: InputDecoration(
+                  labelText: 'Để lại bình luận',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send),
+                    onPressed: _addComment,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

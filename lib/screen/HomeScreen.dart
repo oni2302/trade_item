@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     List<Map<String, dynamic>> filterPost;
 
     return Scaffold(
-        appBar: AppBar(title: const Text('Rao vặt')),
+        appBar: AppBar(title: Center(child: const Text('Rao vặt'))),
         body: Column(children: [
           Padding(
             padding: const EdgeInsets.all(10),

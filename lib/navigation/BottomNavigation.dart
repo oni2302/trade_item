@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:trade_item/screen/HomeScreen.dart';
+import 'package:trade_item/screen/OrderListScreen.dart';
+import 'package:trade_item/screen/ProfileScreen.dart';
 import 'package:trade_item/widget/manage/ManageScreen.dart';
 
 class BottomNavigation extends StatelessWidget {
@@ -43,14 +45,16 @@ class BottomNavigation extends StatelessWidget {
   List<Widget> _buildScreens() {
     return [
       HomeScreen(),
-      ManageScreen()
+      ManageScreen(),
+      OrdereScreen(),
+      ProfileScreen(),
     ];
   }
   List<PersistentBottomNavBarItem> _navBarsItems() {
     return [
       PersistentBottomNavBarItem(
         icon: Icon(CupertinoIcons.home),
-        title: ("Home"),
+        title: ("Trang chủ"),
         activeColorPrimary: CupertinoColors.activeBlue,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
@@ -63,7 +67,33 @@ class BottomNavigation extends StatelessWidget {
       ),
       PersistentBottomNavBarItem(
         icon: Icon(CupertinoIcons.settings),
-        title: ("Settings"),
+        title: ("Quản lí"),
+        activeColorPrimary: CupertinoColors.activeBlue,
+        inactiveColorPrimary: CupertinoColors.systemGrey,
+        routeAndNavigatorSettings: RouteAndNavigatorSettings(
+          initialRoute: "/",
+          routes: {
+            "/first": (final context) => const Placeholder(),
+            "/second": (final context) => const Placeholder(),
+          },
+        ),
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(CupertinoIcons.bag),
+        title: ("Đã mua"),
+        activeColorPrimary: CupertinoColors.activeBlue,
+        inactiveColorPrimary: CupertinoColors.systemGrey,
+        routeAndNavigatorSettings: RouteAndNavigatorSettings(
+          initialRoute: "/",
+          routes: {
+            "/first": (final context) => const Placeholder(),
+            "/second": (final context) => const Placeholder(),
+          },
+        ),
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(CupertinoIcons.person),
+        title: ("Cá nhân"),
         activeColorPrimary: CupertinoColors.activeBlue,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(

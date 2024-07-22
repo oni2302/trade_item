@@ -23,7 +23,9 @@ class APIService {
   Future<Response> deleteUser(int id) async {
     return await _dio.delete('/auth/deleteUser/$id');
   }
-
+  Future<Response> updateUser(int id,Map<String, dynamic> data) async{
+    return await _dio.put('/auth/updateUser/$id', data: data);
+  }
   // UserPermission APIs
   Future<Response> createUserPermission(Map<String, dynamic> data) async {
     return await _dio.post('/userPermission/createUserPer', data: data);

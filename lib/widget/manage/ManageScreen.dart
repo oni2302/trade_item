@@ -48,7 +48,7 @@ class _ManageScreenState extends State<ManageScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage Screen'),
+        title: Text('Quản lí bài viết'),
         actions: [
           IconButton(
             icon: Row(children: [Icon(Icons.add),SizedBox(width: 5,),Text('Tạo bài viết')]),
